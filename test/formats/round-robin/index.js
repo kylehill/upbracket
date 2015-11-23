@@ -111,4 +111,124 @@ describe("pickup", function(){
     })
   })
 
+  it("should allow ties", function(){
+    var t = subject.create({ ties: true })
+
+    t.addPlayer("first")
+    t.addPlayer("second")
+    
+    var result = {
+      winner: "tie",
+      players: {
+        p_1: {
+          outcome: "tie"
+        },
+        p_2: {
+          outcome: "tie"
+        }
+      }
+    }
+    t.setResult("m_1", result)
+
+    expect(t.standings()[0]).to.deep.equal({
+      id: "p_1",
+      name: "first",
+      record: { win: 0, loss: 0, tie: 1 },
+      matches: [ "m_1" ]
+    })
+  })
+
+  it("should allow keeping score", function(){
+    var t = subject.create({ keepScore: true })
+
+    t.addPlayer("first")
+    t.addPlayer("second")
+    
+    var result = {
+      winner: "p_1",
+      players: {
+        p_1: {
+          outcome: "win",
+          pf: 10,
+          pa: 7
+        },
+        p_2: {
+          outcome: "loss",
+          pf: 7,
+          pa: 10
+        }
+      }
+    }
+    t.setResult("m_1", result)
+
+    expect(t.standings()[0]).to.deep.equal({
+      id: "p_1",
+      name: "first",
+      record: { win: 1, loss: 0, pf: 10, pa: 7 },
+      matches: [ "m_1" ]
+    })
+  })
+
+  it("should deserialize correctly", function(){
+    var t = subject.create({ ties: true, created_at: 1 })
+    t.addPlayer("first")
+    t.addPlayer("second")
+    t.addPlayer("third")
+
+    t.setResult("m_2", {
+      winner: "p_3",
+      players: {
+        p_2: {
+          outcome: "loss"
+        },
+        p_3: {
+          outcome: "win"
+        }
+      }
+    })
+
+    t.setResult("m_1", {
+      winner: "tie",
+      players: {
+        p_1: {
+          outcome: "tie"
+        },
+        p_2: {
+          outcome: "tie"
+        }
+      }
+    })
+
+    var serialized = t.serialize()
+    expect(serialized.options).to.deep.equal({
+      ties: true,
+      keepScore: false,
+      players: [],
+      created_at: 1
+    })
+
+    expect(serialized.changes.length).to.equal(5)
+    
+    var d = subject.deserialize(serialized)
+
+    expect(d.fixtures().length).to.equal(3)
+    expect(d.fixtures()[0].state).to.equal("Completed")
+    expect(d.fixtures()[2].state).to.equal("Scheduled")
+    expect(d.standings().length).to.equal(3)
+    
+    expect(d.standings()[1]).to.deep.equal({
+      id: "p_2",
+      name: "second",
+      matches: [ "m_1", "m_2" ],
+      record: {
+        win: 0,
+        loss: 1,
+        tie: 1
+      }
+    })
+
+    expect(d.serialize().changes.length).to.equal(5)
+
+  })
+
 })
