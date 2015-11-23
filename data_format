@@ -1,0 +1,123 @@
+Tournament:
+
+{
+  title: string
+  players: [ player ]
+
+  format: string | Human readable
+
+  state: string > 
+    "Scheduled", "In Progress", "Completed"
+
+  matches: [ match ]
+
+  stages: [ stage ]
+  activeStage: number
+
+  history: [ change ]
+}
+
+---
+
+Player:
+
+{
+  id: string
+  name: string
+
+  record: object | Key-Value pairs
+
+  status: string | Human readable progression/elimination status
+
+  matches: [ string ] (match.id)
+}
+
+---
+
+Match:
+
+{
+  id: string
+  number: number | For presentation
+
+  players: [ string ] (player.id)
+
+  state: string >
+    "Scheduled", "In Progress", "Completed"
+
+  score: [ match_player ]
+
+  result: string | Human readable
+}
+
+---
+
+Match Player:
+
+{
+  player_id: string (player.id)
+  
+  result: string
+
+  score: number -or- object
+
+  * statistics: object
+}
+
+---
+
+Stage:
+
+{
+  title: string
+  players: [ player ]
+
+  format: string | Human readable
+
+  type: string >
+    "Group", "Bracket"
+
+  state: string >
+    "Scheduled", "In Progress", "Completed"
+
+  * rounds: [ round ]
+
+  * groups: [ group ]
+}
+
+---
+
+Round:
+
+{
+  round_id: number
+  title: string
+
+  matches: [ string ] (match.id)
+}
+
+---
+
+Group:
+
+{
+  title: string
+  
+  standings: [ group_player ]
+
+  matches: [ string ] (match.id)
+}
+
+---
+
+Group Player:
+
+{
+  player_id: string (player.id)
+
+  record: object | Key-Value pairs
+
+  status: string | Human readable progression/elimination status
+
+  matches: [ string ] (match.id)
+}
